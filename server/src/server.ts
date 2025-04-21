@@ -10,16 +10,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import http from 'http';
 import { typeDefs, resolvers } from './schema/index.js';
+import { authenticateToken } from './services/auth.js';
 
-interface MyContext {
-  token?: String;
+interface context {
+  user?: {
+    _id: string;
+    username: string;
+    email: string;
+  }
 }
 
 const app = express();
 const PORT = process.env.PORT || 3001;
 
 const httpServer = http.createServer(app);
-const server = new ApolloServer<MyContext>({
+const server = new ApolloServer<context>({
   typeDefs,
   resolvers,
   plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
@@ -29,18 +34,20 @@ await server.start();
 // if we're in production, serve client/build as static assets
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../client/build')));
+
+  app.use((_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../client/build/index.html'));
+  });
 }
 
-app.use((_req: Request, res: Response) => {
-  res.sendFile(path.join(__dirname, '../client/build/index.html'));
-});
+
 
 
 app.use('/graphql',
   express.urlencoded({ extended: true }),
   express.json(),
   expressMiddleware(server, {
-    context: async ({ req }) => ({ token: req.headers.token }),
+    context:authenticateToken,
   }),
 );
 
