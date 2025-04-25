@@ -16,7 +16,7 @@ export const authenticateToken = async ({ req }: { req: Request }) => {
   if (authHeader) {
     const token = authHeader.split(' ')[1];
 
-    const secretKey = process.env.JWT_SECRET_KEY || '';
+    const secretKey = process.env.JWT_SECRET_KEY || 'secret';
 
     jwt.verify(token, secretKey, (err, user) => {
       if (err) {
@@ -34,7 +34,7 @@ export const authenticateToken = async ({ req }: { req: Request }) => {
 
 export const signToken = (username: string, email: string, _id: unknown) => {
   const payload = { username, email, _id };
-  const secretKey = process.env.JWT_SECRET_KEY || '';
+  const secretKey = process.env.JWT_SECRET_KEY || 'secret';
 
   return jwt.sign(payload, secretKey, { expiresIn: '1h' });
 };

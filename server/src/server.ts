@@ -31,18 +31,6 @@ const server = new ApolloServer<context>({
 });
 await server.start();
 
-// if we're in production, serve client/build as static assets
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-
-  app.use((_req: Request, res: Response) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'));
-  });
-}
-
-
-
-
 app.use('/graphql',
   express.urlencoded({ extended: true }),
   express.json(),
@@ -50,6 +38,15 @@ app.use('/graphql',
     context:authenticateToken,
   }),
 );
+
+// if we're in production, serve client/build as static assets
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../../client/dist')));
+
+  app.use((_req: Request, res: Response) => {
+    res.sendFile(path.join(__dirname, '../../client/dist/index.html'));
+  });
+}
 
 db.once('open', () => {
   console.log('🚀 MongoDB connection established');
